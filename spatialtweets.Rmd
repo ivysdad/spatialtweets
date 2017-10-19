@@ -1,0 +1,23 @@
+---
+title: "SpatialTweets"
+author: "Michael"
+date: "October 18, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We want to load up the necessary libraries for obtaining the twitter data. 
+
+```{r eval=F}
+library(ROAuth)
+library(streamR)
+```
+
+From there, we will go through the basic authentification process. Instead of direct authentification, as with the TwitteR package, we will use a browser based method. With this, once the authentification handshake is done, we can save it our working directory and pull it up as needed, instead of repeating the process. It is also a method of protecting the API keys. 
+
+```{r}
+
+```
