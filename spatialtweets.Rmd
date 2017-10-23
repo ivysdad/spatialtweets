@@ -11,13 +11,88 @@ knitr::opts_chunk$set(echo = TRUE)
 
 We want to load up the necessary libraries for obtaining the twitter data. 
 
-```{r eval=F}
+```{r}
 library(ROAuth)
 library(streamR)
+library(tidyverse)
 ```
 
 From there, we will go through the basic authentification process. Instead of direct authentification, as with the TwitteR package, we will use a browser based method. With this, once the authentification handshake is done, we can save it our working directory and pull it up as needed, instead of repeating the process. It is also a method of protecting the API keys. 
 
+It will ask you to input a pin in the console, be sure to do so.  
+
+Refer to this great tutorial for more infomration: (http://politicaldatascience.blogspot.com/2015/12/rtutorial-using-r-to-harvest-twitter.html)
+
+```{r eval=F}
+my_oauth <- OAuthFactory$new(consumerKey = "your key", 
+  consumerSecret = "your secret", 
+  requestURL = "https://api.twitter.com/oauth/request_token", 
+  accessURL = "https://api.twitter.com/oauth/access_token", 
+  authURL = "https://api.twitter.com/oauth/authorize")
+  my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
+  
+save(my_oauth, "my_oauth.Rdata")
+```
+
+Now, we will save my_oauth as an Rdata file so we can just load it for next time instead of going through this process again. 
+
 ```{r}
+load("my_oauth.Rdata")
+```
+
+We should be able to now use Twitter's stream API to begin collecting tweets. Refer to the streamR package for details: (https://cran.r-project.org/web/packages/streamR/streamR.pdf) 
+
+```{r, eval=F}
+# test data 
+file = "CA.json"
+track = NULL
+follow = NULL
+loc = c(-125, 30, -114, 42) # coordinate pairs bounding (roughly) CA
+lang = NULL
+minutes = 5
+time = 60*minutes # this is in seconds 
+tweets = NULL
+filterStream(file.name = file, 
+             track = track,
+             follow = follow, 
+             locations = loc, 
+             language = lang,
+             timeout = time, 
+             tweets = tweets, 
+             oauth = my_oauth,
+             verbose = TRUE)
+```
+
+Now we clean up the JSON file as a dataframe. 
+```{r, eval=F}
+tweets.df <- parseTweets(file)
+write_csv(tweets.df, "cali.tweets.csv")
+```
+```{r}
+test.tw.df <- read_csv("cali.tweets.csv")
+```
+Let's now play with the US census data, and spatial analysis features for R. 
+```{r}
+#load libraries 
+library(tidyverse)
+library(tidycensus)
+```
+
+Tidy census provides us with access to both the US decennial census and the five-year American Community Survey (ACS) APIs. 
+```{r, eval=F}
+census_api_key("your api key", install = TRUE)
+```
+
+Your key should be saved in your system enviroment via the "install = TRUE" arguement and can be called upon for future use using the code below. 
+```{r}
+census_api_key(Sys.getenv("CENSUS_API_KEY"))
+```
+
+Onwards to data! Since I am interested in the California data, let's pull data from the ACS data set for the most recent cycle: 2011-2015. (The funtion "get_acs" will default to 2015 as the end year.) 
+```{r}
+#first load up the variables and save to cache 
+#acs.var.2015 <- load_variables(2015, "acs5", cache=TRUE
+ca <- get_acs(geography = "county", variables = "B19013_001", state = "CA") #looking at median household income data 
+
 
 ```
